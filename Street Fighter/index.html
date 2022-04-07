@@ -1,0 +1,495 @@
+<html>
+<head>
+	<style>
+	*{padding: 0; margin:0;}
+	canvas{ background: #aaa; display: block; margin: 0 auto;}
+	</style>
+</head>
+
+<body>
+<canvas id= "myCanvas" width="392" height="248"></canvas>
+<script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+// Background Elements
+var ground = new Image();
+ground.src = "ground.png";
+var water = new Image();
+water.src = "water.png";
+var boat = new Image();
+boat.src = "boat.png";
+var distanceFromCenter = 0;
+
+// Background Characters and Frame Elements
+var blueSuitImg = new Image();
+var blueSuit = ["bluesuit2.png", "bluesuit3.png", "bluesuit2.png", "bluesuit1.png", "bluesuit2.png", "bluesuit3.png", "bluesuit2.png", "bluesuit1.png", "bluesuit2.png", "bluesuit3.png", "bluesuit2.png", "bluesuit1.png"]
+var brownSuitImg = new Image();
+var brownSuit = ["brownsuit1.png", "brownsuit2.png", "brownsuit3.png", "brownsuit2.png", "brownsuit1.png", "brownsuit2.png", "brownsuit3.png", "brownsuit2.png", "brownsuit1.png", "brownsuit2.png", "brownsuit3.png", "brownsuit2.png"]
+var flagImg = new Image();
+var flag = ["flag1.png", "flag2.png", "flag3.png", "flag2.png", "flag1.png", "flag2.png", "flag3.png", "flag2.png", "flag1.png"]
+var ladyImg = new Image();
+var lady = ["lady1.png", "lady2.png", "lady3.png", "lady2.png", "lady1.png", "lady2.png", "lady3.png", "lady2.png", "lady1.png"]
+var menImg = new Image();
+var men = ["men1.png", "men2.png", "men3.png"]
+var purpleSuitImg = new Image();
+var purpleSuit = ["purplesuit1.png", "purplesuit2.png", "purplesuit3.png", "purplesuit2.png", "purplesuit1.png", "purplesuit2.png", "purplesuit3.png", "purplesuit2.png", "purplesuit1.png", "purplesuit2.png", "purplesuit3.png", "purplesuit2.png"]
+var sweaterManImg = new Image();
+var sweaterMan = ["sweater1.png", "sweater2.png", "sweater2.png", "sweater1.png", "sweater1.png", "sweater2.png", "sweater1.png", "sweater2.png", "sweater2.png"]
+var frameCounter = 0;
+var frame = 0;
+var frameDelta = 1;
+var boatBobHeight = 2;
+var bobHeightArr = [2,4,6,4,2,4,6,4,2];
+var boatDistanceFromCenter = distanceFromCenter + (((100 + distanceFromCenter) / 200) + 20);
+var leftPressed = false;
+var rightPressed = false; 
+
+// Player State Elements
+var player1State = {state: "idle", frames: 4, autoRepeat: true, nextState: "idle"};
+var playerFrameCount = 0;
+var playerFrame = 0;
+var player1X = 150;
+var player1Y = 100;
+
+
+
+// Ken Elements
+var player1Img = new Image();
+player1Img.src = "ken_edited.png";
+var kenIdle = [{x: 0, y: 0, w: 50, h: 100}, {x: 50, y: 0, w: 50, h: 100}, {x: 100, y: 0, w: 50, h: 100}, {x: 150, y: 0, w: 50, h: 100}];
+var kenWalking = [{x: 202, y: 0, w: 50, h: 100}, {x: 251, y: 0, w: 50, h: 100}, {x: 301, y: 0, w: 50, h: 100}, {x: 351, y: 0, w: 50, h: 100}, {x: 400, y: 0, w: 48, h: 100}];
+var kenLowMedP = [{x: 0, y: 116, w: 50, h: 100}, {x: 50, y: 116, w: 65, h: 100}, {x: 116, y: 116, w: 50, h: 100}];
+var kenHighP = [{x: 167, y: 116, w: 50, h: 100}, {x: 217, y: 116, w: 56, h: 100}, {x: 273, y: 116, w: 77, h: 100}, {x: 350, y: 116, w: 60, h: 100}, {x: 410, y: 116, w: 50, h: 100}];
+var kenLowMedK = [{x: 0, y: 246, w: 54, h: 100}, {x: 56, y: 246, w: 73, h: 100}, {x: 129, y: 246, w: 58, h: 100}];
+var kenHighK = [{x: 190, y: 246, w: 50, h: 100}, {x: 240, y: 246, w: 61, h: 100}, {x: 302, y: 246, w: 74, h: 100}, {x: 376, y: 246, w: 67, h: 100}, {x: 443, y: 246, w: 51, h: 100}];
+var kenStraightJump = [{x: 449, y: 0, w: 50, h: 100}, {x: 499, y: 0, w: 42, h: 100}, {x: 541, y: 0, w: 37, h: 100}, {x: 578, y: 0, w: 38, h: 100},
+                        {x: 615, y: 0, w: 37, h: 100}, {x: 652, y: 0, w: 42, h: 100}, {x: 699, y: 0, w: 40, h: 100}];
+var kenCrouch = [{x: 1157, y: 0, w: 50, h: 100}];
+var kenCrouchLP = [{x: 0, y: 375, w: 56, h: 100}, {x: 56, y: 375, w: 66, h: 100}, {x: 125, y: 375, w: 48, h: 100}];
+var kenCrouchMP = [{x: 178, y: 375, w: 50, h: 100}, {x: 229, y: 375, w: 66, h: 100}, {x: 295, y: 375, w: 50, h: 100}, {x: 345, y: 375, w: 52, h: 100}];
+var kenCrouchHP = [{x: 399, y: 375, w: 49, h: 100}, {x: 448, y: 375, w: 55, h: 100}, {x: 503, y: 375, w: 50, h: 100}, {x: 553, y: 375, w: 55, h: 100}, {x: 610, y: 375, w: 45, h: 100}];
+var kenCrouchLK = [{x: 658, y: 375, w: 54, h: 100}, {x: 712, y: 375, w: 76, h: 100}, {x: 788, y: 375, w: 54, h: 100}];
+var kenCrouchMK = [{x: 844, y: 375, w: 54, h: 100}, {x: 898, y: 375, w: 93, h: 100}, {x: 991, y: 375, w: 54, h: 100}];
+var kenCrouchHK = [{x: 1047, y: 375, w: 55, h: 100}, {x: 1102, y: 375, w: 75, h: 100}, {x: 1177, y: 375, w: 56, h: 100}, {x: 1233, y: 375, w: 51, h: 100}, {x: 1284, y: 375, w: 47, h: 100}];
+var jumpSpeed = 6;
+var lowP = false;
+var medP = false;
+var highP = false;
+var lowK = false;
+var medK = false;
+var highK = false;
+//
+var playerJumpHeight;
+var gravity;
+var hasPlayerJumped = false;
+var hasReachedJumpHeight = false;
+
+var fps = 60;
+
+function keyDownHandler(e)
+{
+	if(e.keyCode == 37)
+	{
+		leftPressed = true;
+	}
+	else if(e.keyCode == 39)
+	{
+		rightPressed = true;
+	}
+    else if(e.keyCode == 38)
+	{
+		upPressed = true;
+	}
+    else if(e.keyCode == 40)
+	{
+		downPressed = true;
+	}
+    else if(e.keyCode == 49)
+	{
+		lowP = true;
+	}
+    else if(e.keyCode == 50)
+	{
+		medP = true;
+	}
+    else if(e.keyCode == 51)
+	{
+		highP = true;
+	}
+    else if(e.keyCode == 81)
+	{
+		lowK = true;
+	}
+    else if(e.keyCode == 87)
+	{
+		medK = true;
+	}
+    else if(e.keyCode == 69)
+	{
+		highK = true;
+	}
+}
+
+function keyUpHandler(e)
+{
+	if(e.keyCode == 37)
+	{
+		leftPressed = false;
+	}
+	else if(e.keyCode == 39)
+	{
+		rightPressed = false;
+	}
+    else if(e.keyCode == 38)
+	{
+		upPressed = false;
+	}
+    else if(e.keyCode == 40)
+	{
+		downPressed = false;
+	}
+    else if(e.keyCode == 49)
+	{
+		lowP = false;
+	}
+    else if(e.keyCode == 50)
+	{
+		medP = false;
+	}
+    else if(e.keyCode == 51)
+	{
+		highP = false;
+	}
+    else if(e.keyCode == 81)
+	{
+		lowK = false;
+	}
+    else if(e.keyCode == 87)
+	{
+		medK = false;
+	}
+    else if(e.keyCode == 69)
+	{
+		highK = false;
+	}
+}
+
+function controls()
+{
+    if(upPressed && !hasPlayerJumped)
+    {
+        upPressed = false;
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "straightJump", frames: 7, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+            hasPlayerJumped = true;
+        }
+    }
+    else if(downPressed && !hasPlayerJumped && !player1State.state.localeCompare("walking") == 0)
+    {
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "crouch", frames: 1, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+            playerFrameCount = 0;
+        }
+        if(player1State.state.localeCompare("crouch") == 0)
+        {
+            if(lowK)
+            {
+                player1State = {state: "crouchLK", frames: 3, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+            else if(medK)
+            {
+                player1State = {state: "crouchMK", frames: 3, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+            else if(highK)
+            {
+                player1State = {state: "crouchHK", frames: 5, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+            else if(lowP)
+            {
+                player1State = {state: "crouchLP", frames: 3, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+            else if(medP)
+            {
+                player1State = {state: "crouchMP", frames: 4, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+            else if(highP)
+            {
+                player1State = {state: "crouchHP", frames: 5, autoRepeat: false, nextState: "crouch"};
+                playerFrame = 0;
+                playerFrameCount = 0;
+            }
+        }
+    }
+
+    else if(leftPressed && !player1State.state.localeCompare("straightJump") == 0)
+    {
+        if(distanceFromCenter - 1 > -127)
+        {
+            distanceFromCenter--;
+        }
+        if(player1X >= 40 && distanceFromCenter == -126)
+        {
+            player1X--;
+        }
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "walking", frames: 5, autoRepeat: true, nextState: "idle"};
+        }
+    }
+    else if(rightPressed && !player1State.state.localeCompare("straightJump") == 0)
+    {
+        if(distanceFromCenter + 1 < 128)
+        {
+            distanceFromCenter++;
+        }
+        if(player1X <= 300 && distanceFromCenter == 127)
+        {
+            player1X++;
+        }
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "walking", frames: 5, autoRepeat: true, nextState: "idle"};
+        }
+    }
+    else if(lowK || medK)
+    {
+        lowK = false;
+        medK = false;
+
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "lowMedK", frames: 3, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+        }
+    }
+    else if(highK)
+    {
+        highK = false;
+
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "highK", frames: 5, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+        }
+    }
+    else if(lowP || medP)
+    {
+        lowP = false;
+        medP = false;
+
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "lowMedP", frames: 3, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+        }
+    }
+    else if(highP)
+    {
+        highP = false;
+
+        if(player1State.state.localeCompare("idle") == 0)
+        {
+            player1State = {state: "highP", frames: 5, autoRepeat: false, nextState: "idle"};
+            playerFrame = 0;
+        }
+    }
+    else if(!rightPressed && !leftPressed && !player1State.state.localeCompare("lowMedP") == 0 &&
+            !player1State.state.localeCompare("highP") == 0 &&
+            !player1State.state.localeCompare("lowMedK") == 0 &&
+            !player1State.state.localeCompare("highK") == 0 &&
+            !player1State.state.localeCompare("straightJump") == 0)
+    {
+        player1State = {state: "idle", frames: 4, autoRepeat: true, nextState: "idle"};
+        if(playerFrame >= player1State.frames)
+        {
+            playerFrame = 0;
+        }
+    }
+}
+
+function drawEnvironment()
+{
+    ctx.drawImage(water, (184 + distanceFromCenter), 0, 392, 196, 0, 0, 392, 196);
+    ctx.drawImage(boat, (130 + boatDistanceFromCenter), 5 + boatBobHeight, 392, 181, 0, 0, 392, 200);
+    ctx.drawImage(ground, (260 + distanceFromCenter), 0, 392, 72, 0, 176, 392, 72);
+    if(frameCounter % 20 == 0)
+    {
+        frame += frameDelta;
+        if(frame == 8 || frame == 0)
+        {
+            frameDelta *= -1
+        }
+    }
+
+    flagImg.src = flag[frame];
+    ctx.drawImage(flagImg, 376 - distanceFromCenter, 20);
+    boatBobHeight = bobHeightArr[frame]
+    ladyImg.src = lady[frame];
+    ctx.drawImage(ladyImg, (61 - boatDistanceFromCenter), 109 - boatBobHeight, 32, 61);
+    blueSuitImg.src = blueSuit[frame];
+    ctx.drawImage(blueSuitImg, (158 - boatDistanceFromCenter), 99 - boatBobHeight, 48, 62);
+    brownSuitImg.src = brownSuit[frame];
+    ctx.drawImage(brownSuitImg, (-41 - boatDistanceFromCenter), 21 - boatBobHeight, 40, 44);
+    purpleSuitImg.src = purpleSuit[frame];
+    ctx.drawImage(purpleSuitImg, (0 - boatDistanceFromCenter), 24 - boatBobHeight, 48, 32);
+    sweaterManImg.src = sweaterMan[frame];
+    ctx.drawImage(sweaterManImg, (93 - boatDistanceFromCenter), 109 - boatBobHeight, 32, 61);
+
+
+    frameCounter++;
+}
+
+function drawCharacter1()
+{
+    switch(player1State.state)
+    {
+        case "walking":
+            ctx.drawImage(player1Img, kenWalking[playerFrame].x, kenWalking[playerFrame].y, 
+            kenWalking[playerFrame].w, kenWalking[playerFrame].h, player1X, player1Y,
+            kenWalking[playerFrame].w, kenWalking[playerFrame].h);
+            break;
+        case "crouch":
+            ctx.drawImage(player1Img, kenCrouch[playerFrame].x, kenCrouch[playerFrame].y, 
+            kenCrouch[playerFrame].w, kenCrouch[playerFrame].h, player1X, player1Y,
+            kenCrouch[playerFrame].w, kenCrouch[playerFrame].h);
+            break;
+        case "crouchLK":
+            ctx.drawImage(player1Img, kenCrouchLK[playerFrame].x, kenCrouchLK[playerFrame].y, 
+            kenCrouchLK[playerFrame].w, kenCrouchLK[playerFrame].h, player1X, player1Y,
+            kenCrouchLK[playerFrame].w, kenCrouchLK[playerFrame].h);
+            break;
+        case "crouchMK":
+            ctx.drawImage(player1Img, kenCrouchMK[playerFrame].x, kenCrouchMK[playerFrame].y, 
+            kenCrouchMK[playerFrame].w, kenCrouchMK[playerFrame].h, player1X, player1Y,
+            kenCrouchMK[playerFrame].w, kenCrouchMK[playerFrame].h);
+            break;
+        case "crouchHK":
+            ctx.drawImage(player1Img, kenCrouchHK[playerFrame].x, kenCrouchHK[playerFrame].y, 
+            kenCrouchHK[playerFrame].w, kenCrouchHK[playerFrame].h, player1X, player1Y,
+            kenCrouchHK[playerFrame].w, kenCrouchHK[playerFrame].h);
+            break;
+        case "crouchLP":
+            ctx.drawImage(player1Img, kenCrouchLP[playerFrame].x, kenCrouchLP[playerFrame].y, 
+            kenCrouchLP[playerFrame].w, kenCrouchLP[playerFrame].h, player1X, player1Y,
+            kenCrouchLP[playerFrame].w, kenCrouchLP[playerFrame].h);
+            break;
+        case "crouchMP":
+            ctx.drawImage(player1Img, kenCrouchMP[playerFrame].x, kenCrouchMP[playerFrame].y, 
+            kenCrouchMP[playerFrame].w, kenCrouchMP[playerFrame].h, player1X, player1Y,
+            kenCrouchMP[playerFrame].w, kenCrouchMP[playerFrame].h);
+            break;
+        case "crouchHP":
+            ctx.drawImage(player1Img, kenCrouchHP[playerFrame].x, kenCrouchHP[playerFrame].y, 
+            kenCrouchHP[playerFrame].w, kenCrouchHP[playerFrame].h, player1X, player1Y,
+            kenCrouchHP[playerFrame].w, kenCrouchHP[playerFrame].h);
+            break;
+        case "lowMedK":
+            ctx.drawImage(player1Img, kenLowMedK[playerFrame].x, kenLowMedK[playerFrame].y, 
+            kenLowMedK[playerFrame].w, kenLowMedK[playerFrame].h, player1X, player1Y,
+            kenLowMedK[playerFrame].w, kenLowMedK[playerFrame].h);
+            break;
+        case "highK":
+            ctx.drawImage(player1Img, kenHighK[playerFrame].x, kenHighK[playerFrame].y, 
+            kenHighK[playerFrame].w, kenHighK[playerFrame].h, player1X, player1Y,
+            kenHighK[playerFrame].w, kenHighK[playerFrame].h);
+            break;
+        case "lowMedP":
+            ctx.drawImage(player1Img, kenLowMedP[playerFrame].x, kenLowMedP[playerFrame].y, 
+            kenLowMedP[playerFrame].w, kenLowMedP[playerFrame].h, player1X, player1Y,
+            kenLowMedP[playerFrame].w, kenLowMedP[playerFrame].h);
+            break;
+        case "highP":
+            ctx.drawImage(player1Img, kenHighP[playerFrame].x, kenHighP[playerFrame].y, 
+            kenHighP[playerFrame].w, kenHighP[playerFrame].h, player1X, player1Y,
+            kenHighP[playerFrame].w, kenHighP[playerFrame].h);
+            break;
+        case "straightJump":
+            ctx.drawImage(player1Img, kenStraightJump[playerFrame].x, kenStraightJump[playerFrame].y, 
+            kenStraightJump[playerFrame].w, kenStraightJump[playerFrame].h, player1X, player1Y,
+            kenStraightJump[playerFrame].w, kenStraightJump[playerFrame].h);
+            break;
+        default:
+            ctx.drawImage(player1Img, kenIdle[playerFrame].x, kenIdle[playerFrame].y, 
+            kenIdle[playerFrame].w, kenIdle[playerFrame].h, player1X, player1Y,
+            kenIdle[playerFrame].w, kenIdle[playerFrame].h);
+    }
+    playerFrameCount++;
+    if(playerFrameCount % 7 === 0)
+    {
+        playerFrame++;
+    }
+    if(playerFrame >= player1State.frames && player1State.autoRepeat)
+    {
+        playerFrameCount = 0;
+        playerFrame = 0;
+    }
+    else if(playerFrame >= player1State.frames && !player1State.autoRepeat)
+    {
+        playerFrameCount = 0;
+        playerFrame = 0;
+        if(player1State.nextState.localeCompare("idle") == 0)
+        {
+            player1State = {state: "idle", frames: 4, autoRepeat: true, nextState: "idle"};
+        }
+        else if(player1State.nextState.localeCompare("crouch") == 0)
+        {
+            player1State = {state: "crouch", frames: 1, autoRepeat: true, nextState: "crouch"};
+        }
+    }
+    if(hasPlayerJumped)
+    {
+        if(player1Y >= 0 && !hasReachedJumpHeight)
+        {
+            player1Y -= 4.1;
+        }
+        else
+        {
+            hasReachedJumpHeight = true;
+        }
+        if(hasReachedJumpHeight)
+        {
+            player1Y += 4.1;
+        }
+        if(player1Y >= 100)
+        {
+            player1Y = 100;
+            hasPlayerJumped = false;
+            hasReachedJumpHeight = false;
+        }
+    }
+}
+
+
+function gameLoop(){
+    setTimeout(function() {
+    requestAnimationFrame(gameLoop);
+
+    boatDistanceFromCenter = distanceFromCenter + (((100 + distanceFromCenter) / 200) + 20);
+    ctx.clearRect(0, 0, 256, 224);
+    drawEnvironment();
+    controls();
+    drawCharacter1();
+    }, 1000/fps);
+}
+
+gameLoop();
+
+</script>
+</body>
+</html>
